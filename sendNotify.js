@@ -2252,12 +2252,19 @@ function GetnickName2() {
 }
 const got = require('got');
 require('dotenv').config();
+const { readFile } = require('fs/promises');
+const path = require('path');
 const tokenFileList = ['/ql/data/db/keyv.sqlite', '/ql/data/config/auth.json', '/ql/config/auth.json'];
 let authFile = getLatestFile(tokenFileList);
-const api = got.extend({
-    prefixUrl: 'http://127.0.0.1:5600',
-    retry: { limit: 0 },
-});
+const HOSTS = ['http://127.0.0.1:5600','http://127.0.0.1:5700'];
+function api(options){
+  const req = got.extend({prefixUrl: HOSTS[0],retry:{limit:0},timeout:{request:5000}})(options);
+  ['json','text','buffer'].forEach(m=>{
+    const orig=req[m].bind(req);
+    req[m]=()=>orig().catch(e=>['ECONNREFUSED','ETIMEDOUT'].includes(e.code)?got.extend({prefixUrl:HOSTS[1],retry:{limit:0},timeout:{request:5000}})(options)[m]():Promise.reject(e));
+  });
+  return req;
+}
 function getLatestFile(files) {
     let latestFile = null;
     let latestMtime = 0;
@@ -2276,7 +2283,7 @@ function getLatestFile(files) {
 }
 
 async function getToken() {
-    const authConfig = await fs.readFileSync(authFile);
+    const authConfig = await readFile(authFile);
     // console.log(authConfig.toString().match(/"token":"(.*?)",/)[1])
     return authConfig.toString().match(/"token":"([^"]*)"(?!.*"token":)/)[1];
 }
