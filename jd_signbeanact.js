@@ -1,6 +1,6 @@
 /*
 APP首页-领京豆
-25 0,13 * * * jd_signbeanact.js
+1 0,9 * * * jd_signbeanact.js
 */
 
 
