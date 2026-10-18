@@ -1,6 +1,6 @@
 /*
 入口：首页-赚话费
-38 2,15 * * * jd_dwapp.js
+17 0,17 * * * jd_dwapp.js
 */
 
 const $ = new Env('积分换话费');
